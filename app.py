@@ -1,5 +1,7 @@
 from  tkinter import *
 from tkinter import messagebox
+import hashlib
+import os
 import sqlite3
 
 # -------- FUNCIONES ----------#
@@ -13,7 +15,7 @@ def conexionBBDD():
             CREATE TABLE DATOSUSUARIOS(
                 ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 NOMBRE_USUARIO VARCHAR(50),
-                PASSWORD VARCHAR(50),
+                PASSWORD BLOB,
                 APELLIDO VARCHAR(10),
                 DIRECCION VARCHAR(50),
                 COMENTARIOS VARCHAR(200)
@@ -49,7 +51,7 @@ def crear():
     try:
         miCursor.execute("INSERT INTO DATOSUSUARIOS VALUES(NULL,?,?,?,?,?)", ( 
             miNombre.get(), 
-            miPass.get(),
+            passwordHash(miPass.get()),
             miApellido.get(),
             miDireccion.get(),
             textoComentario.get("1.0", END) 
@@ -93,7 +95,7 @@ def actualizar():
     try:
         miCursor.execute("UPDATE DATOSUSUARIOS SET NOMBRE_USUARIO=?, PASSWORD=?,APELLIDO=?,DIRECCION=?, COMENTARIOS=? WHERE ID= ? ",(
             miNombre.get(),
-            miPass.get(),
+            passwordHash(miPass.get()),
             miApellido.get(),
             miDireccion.get(),
             textoComentario.get("1.0", END),
@@ -119,6 +121,12 @@ def borrar():
     finally:
         limpiarCampos()
         miconexion.close()  
+
+def passwordHash(password):
+    salt = os.urandom(32)
+    key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+    passwordHash = key  + salt
+    return passwordHash
 
 # -------- CONFIG 1 TKINTER ----------#
 root = Tk()
